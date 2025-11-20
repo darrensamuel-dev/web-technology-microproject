@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Agri-Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+        }
+
+        header {
+            background: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            width: 90%;
+            margin: auto;
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 8px rgba(0,0,0,0.1);
+        }
+
+        canvas {
+            width: 100%;
+            height: 250px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Smart Agri-Dashboard</h1>
+    <p>Real-time Agricultural Monitoring</p>
+</header>
+
+<div class="container">
+
+    <div class="card">
+        <h2>Soil Moisture (%)</h2>
+        <canvas id="moistureChart"></canvas>
+    </div>
+
+    <div class="card">
+        <h2>Temperature (°C)</h2>
+        <canvas id="tempChart"></canvas>
+    </div>
+
+    <div class="card">
+        <h2>Humidity (%)</h2>
+        <canvas id="humidityChart"></canvas>
+    </div>
+
+    <div class="card">
+        <h2>Crop Health (0–100)</h2>
+        <canvas id="healthChart"></canvas>
+    </div>
+
+</div>
+
+<script>
+    // Function to generate random data (used for simulation)
+    function generateValue(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Initial datasets
+    let labels = ["1", "2", "3", "4", "5"];
+
+    // Create charts
+    const moistureChart = new Chart(document.getElementById("moistureChart"), {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Soil Moisture",
+                data: [50, 55, 60, 58, 62],
+                borderColor: "green",
+                fill: false
+            }]
+        }
+    });
+
+    const tempChart = new Chart(document.getElementById("tempChart"), {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Temperature",
+                data: [25, 26, 27, 26, 28],
+                borderColor: "red",
+                fill: false
+            }]
+        }
+    });
+
+    const humidityChart = new Chart(document.getElementById("humidityChart"), {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Humidity",
+                data: [70, 68, 69, 72, 73],
+                borderColor: "blue",
+                fill: false
+            }]
+        }
+    });
+
+    const healthChart = new Chart(document.getElementById("healthChart"), {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Crop Health",
+                data: [85, 86, 80, 82, 88],
+                borderColor: "purple",
+                fill: false
+            }]
+        }
+    });
+
+    // Real-time update every 2 seconds
+    setInterval(() => {
+        let newLabel = (labels.length + 1).toString();
+        labels.push(newLabel);
+
+        // Add new random values
+        moistureChart.data.datasets[0].data.push(generateValue(45, 75));
+        tempChart.data.datasets[0].data.push(generateValue(20, 35));
+        humidityChart.data.datasets[0].data.push(generateValue(60, 90));
+        healthChart.data.datasets[0].data.push(generateValue(70, 100));
+
+        // Keep only last 10 values for readability
+        if (labels.length > 10) {
+            labels.shift();
+            moistureChart.data.datasets[0].data.shift();
+            tempChart.data.datasets[0].data.shift();
+            humidityChart.data.datasets[0].data.shift();
+            healthChart.data.datasets[0].data.shift();
+        }
+
+        // Update charts
+        moistureChart.update();
+        tempChart.update();
+        humidityChart.update();
+        healthChart.update();
+
+    }, 2000);
+</script>
+
+</body>
+</html>
