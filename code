@@ -1,168 +1,467 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Smart Agri-Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-        }
-
-        header {
-            background: #4CAF50;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .container {
-            width: 90%;
-            margin: auto;
-            margin-top: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            grid-gap: 20px;
-        }
-
-        .card {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 8px rgba(0,0,0,0.1);
-        }
-
-        canvas {
-            width: 100%;
-            height: 250px;
-        }
-    </style>
-</head>
-
-<body>
-
-<header>
-    <h1>Smart Agri-Dashboard</h1>
-    <p>Real-time Agricultural Monitoring</p>
-</header>
-
-<div class="container">
-
-    <div class="card">
-        <h2>Soil Moisture (%)</h2>
-        <canvas id="moistureChart"></canvas>
-    </div>
-
-    <div class="card">
-        <h2>Temperature (°C)</h2>
-        <canvas id="tempChart"></canvas>
-    </div>
-
-    <div class="card">
-        <h2>Humidity (%)</h2>
-        <canvas id="humidityChart"></canvas>
-    </div>
-
-    <div class="card">
-        <h2>Crop Health (0–100)</h2>
-        <canvas id="healthChart"></canvas>
-    </div>
-
-</div>
-
-<script>
-    // Function to generate random data (used for simulation)
-    function generateValue(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smart Agri Dashboard — Auth, Theme, Sidebar, Admin</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #16a34a;
+      --accent-2: #0ea5e9;
+      --danger: #ef4444;
+      --glass: rgba(255,255,255,0.6);
+      --shadow: 0 6px 18px rgba(16,24,40,0.08);
     }
 
-    // Initial datasets
-    let labels = ["1", "2", "3", "4", "5"];
+    .dark{
+      --bg: #0b1220;
+      --card: #081022;
+      --text: #e6eef8;
+      --muted: #94a3b8;
+      --glass: rgba(255,255,255,0.03);
+      --shadow: 0 8px 30px rgba(2,6,23,0.6);
+    }
 
-    // Create charts
-    const moistureChart = new Chart(document.getElementById("moistureChart"), {
-        type: "line",
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "Soil Moisture",
-                data: [50, 55, 60, 58, 62],
-                borderColor: "green",
-                fill: false
-            }]
-        }
-    });
+    *{box-sizing:border-box}
+    body{
+      margin:0;padding:0;font-family:Inter,ui-sans-serif,system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:var(--bg);color:var(--text);min-height:100vh;display:flex;
+    }
 
-    const tempChart = new Chart(document.getElementById("tempChart"), {
-        type: "line",
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "Temperature",
-                data: [25, 26, 27, 26, 28],
-                borderColor: "red",
-                fill: false
-            }]
-        }
-    });
+    /* Sidebar */
+    .sidebar{
+      width:260px;background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border-right:1px solid rgba(255,255,255,0.03);padding:20px;display:flex;flex-direction:column;gap:18px;
+    }
+    .brand{font-weight:700;display:flex;gap:10px;align-items:center}
+    .brand .logo{width:36px;height:36px;border-radius:8px;background:var(--accent);display:inline-grid;place-items:center;color:white;font-weight:700}
+    nav a{display:flex;gap:12px;align-items:center;padding:10px;border-radius:8px;color:var(--muted);text-decoration:none}
+    nav a.active{background:var(--glass);color:var(--text)}
+    nav a:hover{background:rgba(0,0,0,0.03)}
 
-    const humidityChart = new Chart(document.getElementById("humidityChart"), {
-        type: "line",
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "Humidity",
-                data: [70, 68, 69, 72, 73],
-                borderColor: "blue",
-                fill: false
-            }]
-        }
-    });
+    /* Main */
+    .main{flex:1;display:flex;flex-direction:column;}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid rgba(0,0,0,0.04);background:transparent}
 
-    const healthChart = new Chart(document.getElementById("healthChart"), {
-        type: "line",
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "Crop Health",
-                data: [85, 86, 80, 82, 88],
-                borderColor: "purple",
-                fill: false
-            }]
-        }
-    });
+    .controls{display:flex;gap:12px;align-items:center}
+    .btn{padding:8px 12px;border-radius:8px;border:0;cursor:pointer;background:var(--accent);color:white}
+    .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,0.04)}
 
-    // Real-time update every 2 seconds
-    setInterval(() => {
-        let newLabel = (labels.length + 1).toString();
-        labels.push(newLabel);
+    .content{padding:22px;display:grid;grid-template-columns:260px 1fr;gap:20px}
 
-        // Add new random values
-        moistureChart.data.datasets[0].data.push(generateValue(45, 75));
-        tempChart.data.datasets[0].data.push(generateValue(20, 35));
-        humidityChart.data.datasets[0].data.push(generateValue(60, 90));
-        healthChart.data.datasets[0].data.push(generateValue(70, 100));
+    .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:var(--shadow);}
 
-        // Keep only last 10 values for readability
-        if (labels.length > 10) {
-            labels.shift();
-            moistureChart.data.datasets[0].data.shift();
-            tempChart.data.datasets[0].data.shift();
-            humidityChart.data.datasets[0].data.shift();
-            healthChart.data.datasets[0].data.shift();
-        }
+    /* left column small widgets */
+    .widgets{display:flex;flex-direction:column;gap:14px}
+    .widget{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));}
 
-        // Update charts
-        moistureChart.update();
-        tempChart.update();
-        humidityChart.update();
-        healthChart.update();
+    /* dashboard grid */
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+    canvas{width:100% !important;height:180px !important}
 
-    }, 2000);
-</script>
+    /* forms */
+    .form{display:flex;flex-direction:column;gap:10px}
+    .field{display:flex;flex-direction:column}
+    input[type=text],input[type=password],input[type=email]{padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:transparent;color:var(--text)}
+    label{font-size:13px;color:var(--muted)}
 
+    /* simple modal-ish area for panels */
+    .panel{display:flex;flex-direction:column;gap:12px}
+
+    /* small helpers */
+    .muted{color:var(--muted)}
+    .center{display:grid;place-items:center}
+
+    /* responsive */
+    @media (max-width:900px){
+      .sidebar{display:none}
+      .content{grid-template-columns:1fr}
+    }
+
+    /* small footer */
+    footer{padding:14px 22px;border-top:1px solid rgba(0,0,0,0.04);text-align:center;color:var(--muted)}
+  </style>
+</head>
+<body>
+
+  <div class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">SA</div>
+      <div>
+        <div>Smart Agri</div>
+        <div class="muted" style="font-size:12px">Monitoring Panel</div>
+      </div>
+    </div>
+
+    <nav id="nav">
+      <a href="#" data-view="dashboard" class="active">📈 Dashboard</a>
+      <a href="#" data-view="profile">👤 Profile</a>
+      <a href="#" data-view="settings">⚙️ Settings</a>
+      <a href="#" data-view="admin" id="adminLink" style="display:none">🛠️ Admin Panel</a>
+    </nav>
+
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+      <div id="signedInAs" class="muted">Not signed in</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="signOutBtn" style="display:none">Sign out</button>
+        <button class="btn ghost" id="openAuth">Sign in / Sign up</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main" id="appRoot">
+    <header>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button id="menuToggle" class="btn ghost">☰</button>
+        <h3 style="margin:0">Smart Agri Dashboard</h3>
+        <div class="muted" style="margin-left:10px">Real-time farm monitoring</div>
+      </div>
+
+      <div class="controls">
+        <label style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="themeToggle"> Dark
+        </label>
+        <button class="btn ghost" id="openAuthHeader">Login</button>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- left column: small widgets -->
+      <div class="widgets">
+        <div class="card widget">
+          <div>
+            <div style="font-weight:700">Soil Moisture</div>
+            <div class="muted">Current</div>
+          </div>
+          <div id="wMoist" style="font-weight:700">--%</div>
+        </div>
+
+        <div class="card widget">
+          <div>
+            <div style="font-weight:700">Temperature</div>
+            <div class="muted">Ambient</div>
+          </div>
+          <div id="wTemp" style="font-weight:700">--°C</div>
+        </div>
+
+        <div class="card widget">
+          <div>
+            <div style="font-weight:700">Humidity</div>
+            <div class="muted">Relative</div>
+          </div>
+          <div id="wHum" style="font-weight:700">--%</div>
+        </div>
+
+        <div class="card widget">
+          <div>
+            <div style="font-weight:700">Health</div>
+            <div class="muted">Crop Index</div>
+          </div>
+          <div id="wHealth" style="font-weight:700">--</div>
+        </div>
+      </div>
+
+      <!-- right column: main panels area -->
+      <div style="display:flex;flex-direction:column;gap:18px">
+
+        <div id="viewDashboard" class="card panel">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h4 style="margin:0">Overview</h4>
+            <div class="muted">Live simulated data • last update <span id="lastUpdate">--</span></div>
+          </div>
+
+          <div class="grid">
+            <div class="card">
+              <h5 style="margin-top:0">Soil Moisture</h5>
+              <canvas id="chartMoist"></canvas>
+            </div>
+            <div class="card">
+              <h5 style="margin-top:0">Temperature</h5>
+              <canvas id="chartTemp"></canvas>
+            </div>
+            <div class="card">
+              <h5 style="margin-top:0">Humidity</h5>
+              <canvas id="chartHum"></canvas>
+            </div>
+            <div class="card">
+              <h5 style="margin-top:0">Crop Health</h5>
+              <canvas id="chartHealth"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div id="viewProfile" class="card panel" style="display:none">
+          <h4 style="margin-top:0">Profile</h4>
+          <div id="profileArea">Please sign in to see profile.</div>
+        </div>
+
+        <div id="viewSettings" class="card panel" style="display:none">
+          <h4 style="margin-top:0">Settings</h4>
+          <div class="form">
+            <div class="field">
+              <label>Theme</label>
+              <div style="display:flex;gap:8px"><button class="btn" id="setLight">Light</button><button class="btn ghost" id="setDark">Dark</button></div>
+            </div>
+            <div class="field">
+              <label>Simulated update interval (ms)</label>
+              <input id="simInterval" type="text" value="2000">
+            </div>
+            <div style="display:flex;gap:8px"><button class="btn" id="saveSettings">Save</button></div>
+          </div>
+        </div>
+
+        <div id="viewAdmin" class="card panel" style="display:none">
+          <h4 style="margin-top:0">Admin Panel</h4>
+          <div class="muted">Manage users (stored in localStorage)</div>
+          <div style="display:flex;gap:12px;margin-top:10px">
+            <div style="flex:1">
+              <h5 style="margin:6px 0">Create user</h5>
+              <div class="form">
+                <input id="adminNewName" placeholder="Full name">
+                <input id="adminNewEmail" placeholder="Email">
+                <input id="adminNewPass" placeholder="Password">
+                <select id="adminNewRole"><option value="user">User</option><option value="admin">Admin</option></select>
+                <div style="display:flex;gap:8px"><button class="btn" id="createUserBtn">Create</button></div>
+              </div>
+            </div>
+            <div style="flex:1">
+              <h5 style="margin:6px 0">Existing users</h5>
+              <div id="adminUserList" style="max-height:200px;overflow:auto"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <footer>Smart Agri • Demo UI • No backend (localStorage simulated auth)</footer>
+  </div>
+
+  <!-- Auth modal / panel (simple) -->
+  <div id="authModal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,0.5);padding:20px">
+    <div style="width:420px;max-width:100%;">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h4 style="margin:0">Sign in / Sign up</h4>
+          <button id="closeAuth" class="btn ghost">✕</button>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <div style="flex:1">
+            <h5 style="margin:6px 0">Sign in</h5>
+            <div class="form">
+              <input id="loginEmail" placeholder="Email">
+              <input id="loginPass" type="password" placeholder="Password">
+              <div style="display:flex;gap:8px"><button class="btn" id="loginBtn">Sign in</button></div>
+            </div>
+          </div>
+
+          <div style="flex:1;border-left:1px solid rgba(0,0,0,0.04);padding-left:12px">
+            <h5 style="margin:6px 0">Sign up</h5>
+            <div class="form">
+              <input id="signupName" placeholder="Full name">
+              <input id="signupEmail" placeholder="Email">
+              <input id="signupPass" type="password" placeholder="Password">
+              <select id="signupRole"><option value="user">User</option><option value="admin">Admin</option></select>
+              <div style="display:flex;gap:8px"><button class="btn" id="signupBtn">Create account</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ------------------- Simple client-side auth (localStorage) ----------------- */
+    const STORAGE_KEY = 'sa_users_v1'
+    const SESSION_KEY = 'sa_session_v1'
+
+    function defaultUsers(){
+      // seeded example users
+      return [
+        {id:1,name:'Admin User',email:'admin@farm.com',pass:'admin123',role:'admin'},
+        {id:2,name:'Farmer Joe',email:'joe@farm.com',pass:'joe123',role:'user'}
+      ]
+    }
+
+    function loadUsers(){
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if(!raw){
+        const seed = defaultUsers();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
+        return seed
+      }
+      try{return JSON.parse(raw)}catch(e){localStorage.removeItem(STORAGE_KEY);return defaultUsers()}
+    }
+
+    function saveUsers(u){localStorage.setItem(STORAGE_KEY, JSON.stringify(u))}
+
+    function setSession(user){localStorage.setItem(SESSION_KEY, JSON.stringify(user));updateAuthUI()}
+    function clearSession(){localStorage.removeItem(SESSION_KEY);updateAuthUI()}
+    function getSession(){const s=localStorage.getItem(SESSION_KEY);return s?JSON.parse(s):null}
+
+    /* ------------------- UI wiring ----------------- */
+    const nav = document.getElementById('nav')
+    const views = {dashboard:document.getElementById('viewDashboard'),profile:document.getElementById('viewProfile'),settings:document.getElementById('viewSettings'),admin:document.getElementById('viewAdmin')}
+
+    nav.addEventListener('click', (e)=>{
+      const a = e.target.closest('a[data-view]'); if(!a) return; const v=a.dataset.view; navigate(v)
+    })
+
+    function navigate(view){
+      // toggle active link
+      nav.querySelectorAll('a').forEach(a=>a.classList.toggle('active', a.dataset.view===view));
+      // show view
+      Object.keys(views).forEach(k=>views[k].style.display = (k===view? 'block':'none'))
+    }
+
+    // menu toggle for small screens
+    document.getElementById('menuToggle').addEventListener('click', ()=>{
+      const sb = document.getElementById('sidebar'); sb.style.display = sb.style.display === 'none' ? 'flex' : 'none'
+    })
+
+    // theme
+    const themeToggle = document.getElementById('themeToggle')
+    function applyTheme(dark){
+      document.documentElement.classList.toggle('dark', dark)
+      localStorage.setItem('sa_theme_dark', dark? '1':'0')
+      themeToggle.checked = dark
+    }
+    themeToggle.addEventListener('change', ()=>applyTheme(themeToggle.checked))
+    // load theme
+    applyTheme(localStorage.getItem('sa_theme_dark') === '1')
+
+    document.getElementById('setLight').addEventListener('click', ()=>applyTheme(false))
+    document.getElementById('setDark').addEventListener('click', ()=>applyTheme(true))
+
+    // open auth
+    document.getElementById('openAuth').addEventListener('click', ()=>document.getElementById('authModal').style.display='flex')
+    document.getElementById('openAuthHeader').addEventListener('click', ()=>document.getElementById('authModal').style.display='flex')
+    document.getElementById('closeAuth').addEventListener('click', ()=>document.getElementById('authModal').style.display='none')
+
+    // login/signup logic
+    document.getElementById('signupBtn').addEventListener('click', ()=>{
+      const name = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim().toLowerCase();
+      const pass = document.getElementById('signupPass').value; const role=document.getElementById('signupRole').value;
+      if(!name||!email||!pass){alert('fill fields');return}
+      const users = loadUsers();
+      if(users.some(u=>u.email===email)){alert('email exists');return}
+      const id = users.length ? Math.max(...users.map(u=>u.id))+1 : 1;
+      users.push({id,name,email,pass,role}); saveUsers(users); alert('account created'); document.getElementById('authModal').style.display='none'
+    })
+
+    document.getElementById('loginBtn').addEventListener('click', ()=>{
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const pass = document.getElementById('loginPass').value;
+      const users = loadUsers();
+      const u = users.find(x=>x.email===email && x.pass===pass);
+      if(!u){alert('invalid');return}
+      setSession({id:u.id,name:u.name,email:u.email,role:u.role}); document.getElementById('authModal').style.display='none';
+    })
+
+    document.getElementById('signOutBtn').addEventListener('click', ()=>{clearSession();})
+
+    function updateAuthUI(){
+      const s = getSession();
+      const signedInAs = document.getElementById('signedInAs');
+      const signOutBtn = document.getElementById('signOutBtn');
+      const openBtn = document.getElementById('openAuth');
+      const headerBtn = document.getElementById('openAuthHeader');
+      const adminLink = document.getElementById('adminLink');
+      if(!s){signedInAs.textContent='Not signed in'; signOutBtn.style.display='none'; openBtn.style.display='inline-block'; headerBtn.style.display='inline-block'; adminLink.style.display='none';}
+      else{signedInAs.textContent = `Signed in as ${s.name}`; signOutBtn.style.display='inline-block'; openBtn.style.display='none'; headerBtn.style.display='none'; if(s.role==='admin') adminLink.style.display='block'; else adminLink.style.display='none';}
+      // profile area
+      const p = document.getElementById('profileArea'); if(s){p.innerHTML=`<div><strong>${s.name}</strong><div class="muted">${s.email}</div><div style="margin-top:8px">Role: ${s.role}</div></div>`} else {p.innerHTML='Please sign in to see profile.'}
+      renderAdminUsers();
+    }
+
+    updateAuthUI();
+
+    /* ------------------- Admin CRUD ----------------- */
+    function renderAdminUsers(){
+      const list = document.getElementById('adminUserList'); list.innerHTML='';
+      const users = loadUsers();
+      users.forEach(u=>{
+        const el = document.createElement('div'); el.style.display='flex'; el.style.justifyContent='space-between'; el.style.alignItems='center'; el.style.padding='8px 6px'; el.style.borderBottom='1px solid rgba(0,0,0,0.04)';
+        el.innerHTML = `<div><strong>${u.name}</strong><div class='muted' style='font-size:12px'>${u.email} • ${u.role}</div></div>`
+        const actions = document.createElement('div');
+        const del = document.createElement('button'); del.textContent='Delete'; del.className='btn ghost'; del.style.marginLeft='8px';
+        del.onclick = ()=>{ if(confirm('delete user?')){ const arr=loadUsers().filter(x=>x.id!==u.id); saveUsers(arr); renderAdminUsers(); }}
+        const toggleAdmin = document.createElement('button'); toggleAdmin.textContent = u.role==='admin'?'Demote':'Make admin'; toggleAdmin.className='btn';
+        toggleAdmin.onclick = ()=>{const arr=loadUsers().map(x=> x.id===u.id? {...x,role: x.role==='admin'?'user':'admin'}:x); saveUsers(arr); renderAdminUsers();}
+        actions.appendChild(toggleAdmin); actions.appendChild(del);
+        el.appendChild(actions); list.appendChild(el);
+      })
+    }
+
+    document.getElementById('createUserBtn').addEventListener('click', ()=>{
+      const name = document.getElementById('adminNewName').value.trim();
+      const email = document.getElementById('adminNewEmail').value.trim().toLowerCase();
+      const pass = document.getElementById('adminNewPass').value; const role = document.getElementById('adminNewRole').value;
+      if(!name||!email||!pass){alert('fill');return}
+      const users = loadUsers(); if(users.some(u=>u.email===email)){alert('exists');return}
+      const id = users.length ? Math.max(...users.map(u=>u.id))+1 : 1; users.push({id,name,email,pass,role}); saveUsers(users); renderAdminUsers(); alert('created')
+    })
+
+    /* ------------------- Simulate live data + charts ----------------- */
+    const ctxM = document.getElementById('chartMoist').getContext('2d');
+    const ctxT = document.getElementById('chartTemp').getContext('2d');
+    const ctxH = document.getElementById('chartHum').getContext('2d');
+    const ctxC = document.getElementById('chartHealth').getContext('2d');
+
+    function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min }
+    let labels = ['1','2','3','4','5']
+    function mkChart(ctx, label, color, data){
+      return new Chart(ctx,{type:'line',data:{labels:[...labels],datasets:[{label,data:[...data],borderColor:color,backgroundColor:'transparent',fill:false,tension:0.3}]},options:{plugins:{legend:{display:false}}}})
+    }
+
+    const chartMoist = mkChart(ctxM,'Moisture','green',[50,55,60,58,62])
+    const chartTemp = mkChart(ctxT,'Temp','tomato',[25,26,27,26,28])
+    const chartHum = mkChart(ctxH,'Hum','royalblue',[70,68,69,72,73])
+    const chartHealth = mkChart(ctxC,'Health','purple',[85,86,80,82,88])
+
+    let simInterval = parseInt(localStorage.getItem('sa_sim_interval')||'2000')
+    function pushSim(){
+      const label = (Date.now()%100000).toString().slice(-4)
+      labels.push(label); if(labels.length>10) labels.shift();
+      const m = rand(40,80); const t = rand(18,36); const h = rand(50,95); const c = rand(60,99);
+      // push
+      [chartMoist,chartTemp,chartHum,chartHealth].forEach((ch,i)=>{
+        const v = [m,t,h,c][i]; ch.data.labels = [...labels]; ch.data.datasets[0].data.push(v); if(ch.data.datasets[0].data.length>10) ch.data.datasets[0].data.shift(); ch.update();
+      })
+      // widgets
+      document.getElementById('wMoist').textContent = m+'%'
+      document.getElementById('wTemp').textContent = t+'°C'
+      document.getElementById('wHum').textContent = h+'%'
+      document.getElementById('wHealth').textContent = c
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString()
+    }
+
+    let simTimer = setInterval(pushSim, simInterval)
+
+    document.getElementById('saveSettings').addEventListener('click', ()=>{
+      const iv = parseInt(document.getElementById('simInterval').value)||2000; localStorage.setItem('sa_sim_interval', iv); simInterval=iv; clearInterval(simTimer); simTimer=setInterval(pushSim, simInterval); alert('saved')
+    })
+
+    // initial push
+    pushSim()
+
+    // admin nav: only visible if signed in admin; navigation handler will display admin view if clicked
+    document.getElementById('adminLink').addEventListener('click', ()=>navigate('admin'))
+
+    // show auth depending on route
+    navigate('dashboard')
+
+    // expose for debugging
+    window.SA = {loadUsers,saveUsers,getSession,setSession,clearSession}
+
+  </script>
 </body>
 </html>
